@@ -59,13 +59,8 @@ var schema = buildSchema(`
     rollThreeDice: [Int],
     getDie(numSides: Int): RandomDie,
     getMessage(id: ID!): Message,
-    ip: String,
-    user(id: String): User
+    ip: String
   },
-  type User {
-    id: String
-    name: String
-  }
 `);
 
 const loggingMiddleware = (req, res, next) => {
@@ -73,48 +68,7 @@ const loggingMiddleware = (req, res, next) => {
   next();
 }
 
-// 从 id 映射到 User 对象
-var fakeDatabase = {
-  'a': {
-    id: 'a',
-    name: 'alice',
-  },
-  'b': {
-    id: 'b',
-    name: 'bob',
-  },
-};
-
 var fakeDatabase = {};
-
-
-// 定义 User 类型
-var userType = new graphql.GraphQLObjectType({
-  name: 'User',
-  fields: {
-    id: { type: graphql.GraphQLString },
-    name: { type: graphql.GraphQLString },
-  }
-});
-
-// 定义 Query 类型
-var queryType = new graphql.GraphQLObjectType({
-  name: 'Query',
-  fields: {
-    user: {
-      type: userType,
-      // `args` 描述了 `user` 查询接受的参数
-      args: {
-        id: { type: graphql.GraphQLString }
-      },
-      resolve: (_, {id}) => {
-        return fakeDatabase[id];
-      }
-    }
-  }
-});
-
-var schema = new graphql.GraphQLSchema({query: queryType});
 
 var root = { 
   hello: () => 'Hello world!',
@@ -158,9 +112,6 @@ var root = {
   },
   ip: function (args, request) {
     return request.ip;
-  },
-  user: ({id}) => {
-    return fakeDatabase[id];
   }
 };
 
