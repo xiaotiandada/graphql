@@ -1,94 +1,63 @@
-// var express = require('express');
-// var graphqlHTTP = require('express-graphql');
-// var { buildSchema } = require('graphql');
+const express = require('express');
+const { ApolloServer, gql } = require('apollo-server-express');
 
-// var schema = buildSchema(`
-//   type Query {
-//     hello: String
-//   }
-// `);
+// 书库 没接数据库
+const books = [
+  {
+    title: 'Harry Potter and the Chamber of Secrets',
+    author: 'J.K. Rowling',
+  },
+  {
+    title: 'Jurassic Park',
+    author: 'Michael Crichton'
+  },
+];
 
-// var root = { hello: () => 'Hello world!' };
-
-// var app = express();
-// app.use('/graphql', graphqlHTTP({
-//   schema: schema,
-//   rootValue: root,
-//   graphiql: true,
-// }));
-// app.listen(4000, () => console.log('Now browse to localhost:4000/graphql'));
-
-let express = require('express')
-let graphqlHTTP = require('express-graphql')
-let { graphql, buildSchema } = require('graphql')
-let app = express()
+// TODO: 
+// 1. 查询所有的书
+// 2. 添加一本书
+// 3. 更新一本书
+// 4. 删除一本书
 
 
-// 使用 GraphQL schema language 构建 schema
-var schema = buildSchema(`
-  input MessageInput {
-    content: String
-    author: String
+const typeDefs = gql`
+  type Book {
+    title: String
+    author: Author
+  }
+  type Author {
+    name: String
+    books: [Book]
   }
 
-  type Message {
-    id: ID!
-    content: String
-    author: String
-  }
 
   type Query {
-    getMessage(id: ID!): Message
+    hello: String,
+    books: [Book],
+    authors: [Author]
   }
 
   type Mutation {
-    createMessage(input: MessageInput): Message
-    updateMessage(id: ID!, input: MessageInput): Message
+    addBook(title: String, author: String): Book
   }
-`);
+`;
 
-// 如果 Message 拥有复杂字段，我们把它们放在这个对象里面。
-class Message {
-  constructor(id, {content, author}) {
-    this.id = id;
-    this.content = content;
-    this.author = author;
+const resolvers = {
+  Query: {
+    hello: () => 'Hello world!',
+    books: () => books,
+    authors: () => books,
+  },
+  Mutation: {
+    
   }
-}
-
-// 映射 username 到 content
-var fakeDatabase = {};
-
-var root = {
-  getMessage: function ({id}) {
-    if (!fakeDatabase[id]) {
-      throw new Error('no message exists with id ' + id);
-    }
-    return new Message(id, fakeDatabase[id]);
-  },
-  createMessage: function ({input}) {
-    // Create a random id for our "database".
-    var id = require('crypto').randomBytes(10).toString('hex');
-
-    fakeDatabase[id] = input;
-    return new Message(id, input);
-  },
-  updateMessage: function ({id, input}) {
-    if (!fakeDatabase[id]) {
-      throw new Error('no message exists with id ' + id);
-    }
-    // This replaces all old data, but some apps might want partial update.
-    fakeDatabase[id] = input;
-    return new Message(id, input);
-  },
 };
 
-app.use('/graphql', graphqlHTTP({
-  schema: schema,
-  rootValue: root,
-  graphiql: true
-}))
+const server = new ApolloServer({ typeDefs, resolvers });
 
-app.listen(4000, () => {
-  console.log('in 4000 prot')
-})
+const app = express();
+server.applyMiddleware({ app });
+
+app.listen({ port: 4000 }, () =>
+  console.log('Now browse to http://localhost:4000' + server.graphqlPath)
+);
