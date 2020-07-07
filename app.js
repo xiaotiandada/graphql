@@ -15,6 +15,7 @@ const books = [
   },
 ];
 
+// 定义 type
 const typeDefs = gql`
   type Book {
     id: Int,
@@ -32,13 +33,14 @@ const typeDefs = gql`
     deleteBook(id: Int, title: String, author: String): Book,
   }
 `;
-
+// 定义 resolvers
 const resolvers = {
   Query: {
+    // 查询所有书
     books: () => books,
   },
   Mutation: {
-    // 创建
+    // 创建一本书
     createBook: (_, { title, author }) => {
       let list = {
         id: books.length,
@@ -48,7 +50,7 @@ const resolvers = {
       books.push(list)
       return list
     },
-    // 更新
+    // 更新一本书
     updateBook: (_, { id, title, author }) => {
       let idx = books.findIndex(i => i.id === id)
       if (~idx) {
@@ -62,7 +64,7 @@ const resolvers = {
         return []
       }
     },
-    // 删除
+    // 删除一本书
     deleteBook: (_, { id }) => {
       let idx = books.findIndex(i => i.id === id)
       if (~idx) {
